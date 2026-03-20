@@ -1,0 +1,52 @@
+.backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.75);
+  z-index: 100; backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+}
+.modal {
+  background: var(--surface); border: 1px solid var(--accent);
+  padding: 36px; max-width: 480px; width: 90%; position: relative;
+  animation: slideUp 0.3s cubic-bezier(0.16,1,0.3,1);
+}
+@keyframes slideUp {
+  from { transform: translateY(30px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+.close {
+  position: absolute; top: 16px; right: 16px;
+  background: none; border: none; color: var(--muted);
+  font-size: 20px; cursor: pointer; transition: color 0.2s;
+}
+.close:hover { color: var(--accent2); }
+.title {
+  font-family: 'Bebas Neue', sans-serif; font-size: 28px;
+  letter-spacing: 2px; margin-bottom: 6px; color: var(--accent);
+}
+.question { font-size: 15px; color: var(--text); margin-bottom: 24px; line-height: 1.5; }
+
+.options { display: flex; flex-direction: column; gap: 10px; }
+.choiceBtn {
+  width: 100%; padding: 14px 18px; background: transparent;
+  border: 1px solid var(--border); color: var(--text);
+  font-family: 'DM Sans', sans-serif; font-size: 14px;
+  text-align: left; cursor: pointer; transition: all 0.2s;
+}
+.choiceBtn:hover { border-color: var(--accent); color: var(--accent); background: rgba(0,229,255,0.04); }
+.selected { border-color: var(--accent2) !important; color: var(--accent2) !important; background: rgba(255,60,172,0.06) !important; }
+
+.submitBtn {
+  width: 100%; margin-top: 14px; padding: 14px;
+  font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 3px;
+  background: var(--accent2); border: none; color: var(--bg);
+  cursor: pointer; font-weight: 700; text-transform: uppercase; transition: all 0.2s;
+}
+.submitBtn:hover { background: var(--accent); }
+.submitBtn:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; }
+
+.success {
+  margin-top: 14px; font-family: 'Space Mono', monospace;
+  font-size: 11px; color: #00ff88; display: flex; flex-direction: column; gap: 6px;
+}
+.txLink { color: var(--accent); text-decoration: none; font-size: 10px; word-break: break-all; }
+.txLink:hover { text-decoration: underline; }
+.error { margin-top: 10px; font-family: 'Space Mono', monospace; font-size: 10px; color: var(--accent2); }

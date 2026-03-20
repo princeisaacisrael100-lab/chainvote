@@ -1,0 +1,36 @@
+.blob2 {
+  position: fixed; bottom: -150px; right: -150px;
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(255,60,172,0.06) 0%, transparent 70%);
+  pointer-events: none; z-index: 0;
+}
+.hero { position: relative; z-index: 5; text-align: center; padding: 70px 40px 50px; }
+.heroTag { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 4px; color: var(--accent2); margin-bottom: 18px; text-transform: uppercase; }
+.heroTitle { font-family: 'Bebas Neue', sans-serif; font-size: clamp(60px, 10vw, 110px); line-height: 0.9; letter-spacing: 4px; background: linear-gradient(135deg, var(--text) 0%, var(--accent) 60%, var(--accent2) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 18px; }
+.heroSub { color: var(--muted); font-size: 16px; font-weight: 300; max-width: 500px; margin: 0 auto; line-height: 1.7; }
+.networkBar { position: relative; z-index: 5; display: flex; justify-content: center; gap: 16px; padding: 0 40px 40px; flex-wrap: wrap; }
+.badge { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 1px; color: var(--muted); border: 1px solid var(--border); padding: 6px 14px; display: flex; align-items: center; gap: 8px; }
+.dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent3); box-shadow: 0 0 6px var(--accent3); animation: blink 2s infinite; display: inline-block; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.contractBadge { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--accent3); border: 1px solid var(--accent3); padding: 6px 14px; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: all 0.2s; background: transparent; }
+.contractBadge:hover { background: rgba(255,230,0,0.07); }
+.main { position: relative; z-index: 5; max-width: 1100px; margin: 0 auto; padding: 0 40px 80px; display: grid; grid-template-columns: 1fr 320px; gap: 32px; }
+@media(max-width: 800px) { .main { grid-template-columns: 1fr; padding: 0 20px 80px; } }
+.panel { background: var(--surface); border: 1px solid var(--border); padding: 28px; }
+.panelTitle { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--accent); margin-bottom: 24px; display: flex; align-items: center; gap: 10px; }
+.panelTitle::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.pollsList { display: flex; flex-direction: column; gap: 20px; }
+.empty { text-align: center; padding: 60px 20px; color: var(--muted); }
+.emptyIcon { font-size: 48px; margin-bottom: 16px; opacity: 0.3; }
+.empty p { font-size: 14px; line-height: 1.7; }
+.skeletonCard { border: 1px solid var(--border); padding: 24px; }
+.skel { background: linear-gradient(90deg, var(--border) 25%, #2a2a3e 50%, var(--border) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 2px; margin-bottom: 8px; }
+@keyframes shimmer { to { background-position: -200% 0; } }
+.sidebar { display: flex; flex-direction: column; gap: 20px; }
+.statsGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.statBox { border: 1px solid var(--border); padding: 16px; text-align: center; }
+.statNum { font-family: 'Bebas Neue', sans-serif; font-size: 36px; color: var(--accent); line-height: 1; }
+.statLabel { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 2px; color: var(--muted); margin-top: 4px; text-transform: uppercase; }
+.etherscanBox { border: 1px solid var(--border); padding: 14px; font-family: 'Space Mono', monospace; font-size: 10px; color: var(--muted); line-height: 2; }
+.etherscanBox a { color: var(--accent3); text-decoration: none; word-break: break-all; }
+.etherscanBox a:hover { text-decoration: underline; }
