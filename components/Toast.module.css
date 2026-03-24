@@ -1,12 +1,32 @@
+/**
+ * Toast Styles
+ * ------------
+ * Floating notifications for user feedback.
+ */
+
 .toast {
-  position: fixed; bottom: 30px; right: 30px;
-  font-family: 'Space Mono', monospace; font-size: 12px;
-  background: var(--surface); border: 1px solid var(--accent);
-  color: var(--text); padding: 14px 24px; z-index: 1000;
-  transform: translateY(100px); opacity: 0; max-width: 320px;
-  transition: all 0.3s cubic-bezier(0.16,1,0.3,1);
-  box-shadow: 0 8px 32px var(--shadow-strong);
-  border-radius: 4px;
+  position: fixed; bottom: 32px; left: 50%; 
+  transform: translateX(-50%); z-index: 2000;
+  display: flex; align-items: center; gap: 16px; 
+  padding: 16px 24px; min-width: 320px;
+  background: var(--glass-heavy); border: 1.5px solid var(--accent);
+  color: var(--text); border-radius: 4px; 
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.show { transform: translateY(0); opacity: 1; }
-.error { border-color: var(--accent2); color: var(--accent2); }
+
+.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+.hidden { opacity: 0; transform: translateX(-50%) translateY(20px); }
+
+.error { border-color: var(--accent2); }
+.error .icon { color: var(--accent2); }
+
+.icon { font-size: 20px; color: var(--accent); }
+.message { font-size: 14px; font-weight: 500; font-family: 'DM Sans', sans-serif; flex: 1; }
+
+.close {
+  background: none; border: none; color: var(--muted);
+  font-size: 24px; cursor: pointer; line-height: 1;
+  transition: color 0.2s ease;
+}
+.close:hover { color: var(--text); }

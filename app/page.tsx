@@ -1,98 +1,153 @@
+/**
+ * ChainVote - On-Chain Polling Dashboard
+ * -------------------------------------
+ * A premium dApp for creating and participating in decentralized polls.
+ */
+
 "use client";
+
 import { useState, useCallback, useEffect } from "react";
 import { useWallet } from "@/lib/useWallet";
 import { usePolls } from "@/lib/usePolls";
 import { Poll, CONTRACT_ADDRESS } from "@/lib/contract";
+
+// Components
 import Header from "@/components/Header";
 import PollCard from "@/components/PollCard";
 import VoteModal from "@/components/VoteModal";
 import CreatePoll from "@/components/CreatePoll";
 import Toast from "@/components/Toast";
+
+// Layout Styles
 import styles from "./page.module.css";
 
-export default function Home() {
+export default function HomePage() {
   const wallet = useWallet();
   const { polls, loading, error, loadPolls, createPoll, castVote, deletePoll } = usePolls();
 
+  // Selected poll for voting
   const [activePoll, setActivePoll] = useState<Poll | null>(null);
-  const [toast, setToast] = useState<{ msg: string; error?: boolean } | null>(null);
-  const [blockNum, setBlockNum] = useState<string>("—");
+  const [currentToast, setCurrentToast] = useState<{ msg: string; error?: boolean } | null>(null);
+  const [networkBlock, setNetworkBlock] = useState<string>("— —");
 
-  const showToast = (msg: string, isError = false) =>
-    setToast({ msg, error: isError });
-  const clearToast = useCallback(() => setToast(null), []);
+  /**
+   * Shows a temporary toast message to the user
+   */
+  const showToast = (msg: string, isError = false) => {
+    setCurrentToast({ msg, error: isError });
+  };
+  
+  const clearToast = useCallback(() => setCurrentToast(null), []);
 
+  /**
+   * Wallet connection handler
+   */
   const handleConnect = async () => {
     await wallet.connect();
-    if (wallet.error) { showToast(wallet.error, true); }
+    if (wallet.error) {
+      showToast(wallet.error, true);
+    } else {
+      showToast("Wallet connected successfully!");
+    }
   };
 
-  const handleDisconnect = () => {
+  /**
+   * Graceful wallet logout
+   */
+  const handleLogout = () => {
     wallet.disconnect();
-    showToast("Wallet disconnected.");
+    showToast("Session disconnected.");
   };
 
-  const updateBlock = useCallback(async () => {
+  /**
+   * Fetches latest Sepolia block number for the UI
+   */
+  const updateBlockInfo = useCallback(async () => {
     if (typeof window === "undefined" || !(window as any).ethereum) return;
     try {
-      const hex: string = await (window as any).ethereum.request({
-        method: "eth_blockNumber",
-      });
+      const hex: string = await (window as any).ethereum.request({ method: "eth_blockNumber" });
       const num = parseInt(hex, 16);
-      setBlockNum((num / 1000).toFixed(1) + "K");
-    } catch {}
+      setNetworkBlock((num / 1000).toFixed(1) + "K");
+    } catch (e) {
+      console.warn("Failed to update network block.");
+    }
   }, []);
 
+  /**
+   * Periodic block update on mount
+   */
   useEffect(() => {
-    updateBlock();
-    const interval = setInterval(updateBlock, 15000);
-    return () => clearInterval(interval);
-  }, [updateBlock]);
+    updateBlockInfo();
+    const timer = setInterval(updateBlockInfo, 12000); // 12-second block update interval
+    return () => clearInterval(timer);
+  }, [updateBlockInfo]);
 
+  /**
+   * Automatically load polls whenever a wallet is connected
+   */
   useEffect(() => {
     if (wallet.address) {
-      const p = wallet.getProvider();
-      if (p) {
-        loadPolls(p, wallet.address);
+      const provider = wallet.getProvider();
+      if (provider) {
+        loadPolls(provider, wallet.address);
       }
     }
   }, [wallet.address, loadPolls, wallet.getProvider]);
 
-  const handleVote = (pollId: number) => {
-    if (!wallet.address) { showToast("Connect your wallet first.", true); return; }
-    const poll = polls.find((p) => p.id === pollId);
-    if (poll) setActivePoll(poll);
+  /**
+   * Triggers the voting modal for a specific poll
+   */
+  const openVoteModal = (pollId: number) => {
+    if (!wallet.address) {
+      showToast("Connect your wallet first.", true);
+      return;
+    }
+    const targetPoll = polls.find((p) => p.id === pollId);
+    if (targetPoll) setActivePoll(targetPoll);
   };
 
-  const handleSubmitVote = async (optionIndex: number): Promise<string> => {
+  /**
+   * Process a vote transaction from the modal
+   */
+  const submitVoteTransaction = async (optionIndex: number): Promise<string> => {
     const signer = wallet.getSigner();
-    if (!signer || !activePoll) throw new Error("No signer");
-    const hash = await castVote(signer, activePoll.id, optionIndex);
-    showToast("✓ Your vote is on the blockchain!");
-    const p = wallet.getProvider();
-    if (p) await loadPolls(p, wallet.address);
-    return hash;
+    if (!signer || !activePoll) throw new Error("No signer found.");
+    
+    const txHash = await castVote(signer, activePoll.id, optionIndex);
+    showToast("✓ Your vote is on-chain!");
+
+    // Refresh data in background
+    const provider = wallet.getProvider();
+    if (provider) await loadPolls(provider, wallet.address);
+    
+    return txHash;
   };
 
-  const handleCreatePoll = async (question: string, options: string[]) => {
+  /**
+   * Process a poll creation transaction
+   */
+  const submitCreateTransaction = async (question: string, options: string[]) => {
     const signer = wallet.getSigner();
-    if (!signer) { showToast("Connect your wallet first.", true); return; }
+    if (!signer) {
+      showToast("Connect your wallet first.", true);
+      return;
+    }
+
     try {
-      showToast("Transaction submitted! Waiting for confirmation...");
+      showToast("Blockchain transaction submitted...");
       await createPoll(signer, question, options);
-      showToast("✓ Poll created on-chain!");
-      const p = wallet.getProvider();
-      if (p) await loadPolls(p, wallet.address);
-    } catch (e: unknown) {
-      showToast(e instanceof Error ? e.message : "Transaction failed", true);
+      showToast("✓ Poll created successfully!");
+      
+      const provider = wallet.getProvider();
+      if (provider) await loadPolls(provider, wallet.address);
+    } catch (e: any) {
+      showToast(e.message || "Transaction failed.", true);
     }
   };
 
-  const totalVotes = polls.reduce(
-    (sum, p) => sum + p.votes.reduce((a, b) => a + b, 0),
-    0
-  );
-  const myVotes = polls.filter((p) => p.voted).length;
+  // UI Derived Data
+  const totalVotesAcrossPolls = polls.reduce((sum, p) => sum + p.votes.reduce((a, b) => a + b, 0), 0);
+  const userTotalVotes = polls.filter((p) => p.voted).length;
 
   return (
     <>
@@ -103,26 +158,29 @@ export default function Home() {
         short={wallet.short}
         loading={wallet.loading}
         onConnect={handleConnect}
-        onDisconnect={handleDisconnect}
+        onDisconnect={handleLogout}
       />
 
       <div className={styles.hero}>
-        <div className={styles.heroTag}>// Decentralized Governance · Sepolia Testnet</div>
+        <div className={styles.heroTag}>// Decentralized Governance · Sepolia Network</div>
         <h1 className={styles.heroTitle}>ON-CHAIN<br />VOTING</h1>
         <p className={styles.heroSub}>
-          Create polls, cast votes, and see live results — secured permanently on the Ethereum blockchain.
+          Cast your voice onto the blockchain — secure, immutable, and live results for every participant.
         </p>
       </div>
 
       <div className={styles.networkBar}>
         <div className={styles.badge}><span className={styles.dot} /> SEPOLIA TESTNET</div>
-        <div className={styles.badge}>BLOCK {blockNum}</div>
-        <div className={styles.badge}>{wallet.address ? wallet.short : "NOT CONNECTED"}</div>
+        <div className={styles.badge}>BLOCK {networkBlock}</div>
+        <div className={styles.badge}>{wallet.address ? wallet.short : "GUEST MODE"}</div>
         <button
           className={styles.contractBadge}
-          onClick={() => { navigator.clipboard.writeText(CONTRACT_ADDRESS); showToast("Contract address copied!"); }}
+          onClick={() => {
+            navigator.clipboard.writeText(CONTRACT_ADDRESS);
+            showToast("Contract address copied!");
+          }}
         >
-          📄 0xb9333...7F59
+          📄 {CONTRACT_ADDRESS.slice(0, 10)}...{CONTRACT_ADDRESS.slice(-4)}
         </button>
       </div>
 
@@ -131,7 +189,7 @@ export default function Home() {
           <div className={styles.panel}>
             <div className={styles.panelTitle}>
               // Active Polls
-              {!loading && (
+              {!loading && wallet.address && (
                 <button 
                   className={styles.refreshBtn} 
                   onClick={() => {
@@ -148,10 +206,11 @@ export default function Home() {
                 </button>
               )}
             </div>
+
             {!wallet.address ? (
               <div className={styles.empty}>
                 <div className={styles.emptyIcon}>🔌</div>
-                <p>Connect your wallet above to load polls from the blockchain.</p>
+                <p>Welcome! Connect your Ethereum wallet to participate in the on-chain governance.</p>
               </div>
             ) : loading ? (
               <div className={styles.pollsList}>
@@ -167,7 +226,7 @@ export default function Home() {
             ) : polls.length === 0 ? (
               <div className={styles.empty}>
                 <div className={styles.emptyIcon}>🗳</div>
-                <p>No polls yet. Be the first to create one!</p>
+                <p>Be the first one to create a poll on this contract!</p>
               </div>
             ) : (
               <div className={styles.pollsList}>
@@ -176,7 +235,7 @@ export default function Home() {
                     key={poll.id} 
                     poll={poll} 
                     index={idx} 
-                    onVote={handleVote} 
+                    onVote={openVoteModal} 
                     onDelete={deletePoll}
                     isCreator={!!wallet.address && poll.creator.toLowerCase() === wallet.address.toLowerCase()}
                   />
@@ -196,33 +255,33 @@ export default function Home() {
               </div>
               <div className={styles.statBox}>
                 <div className={styles.statNum}>
-                  {wallet.address ? (totalVotes >= 1000 ? (totalVotes / 1000).toFixed(1) + "K" : totalVotes) : "—"}
+                  {wallet.address ? (totalVotesAcrossPolls >= 1000 ? (totalVotesAcrossPolls / 1000).toFixed(1) + "K" : totalVotesAcrossPolls) : "—"}
                 </div>
                 <div className={styles.statLabel}>Total Votes</div>
               </div>
               <div className={styles.statBox}>
-                <div className={styles.statNum}>{wallet.address ? myVotes : "—"}</div>
+                <div className={styles.statNum}>{wallet.address ? userTotalVotes : "—"}</div>
                 <div className={styles.statLabel}>My Votes</div>
               </div>
               <div className={styles.statBox}>
-                <div className={styles.statNum}>{blockNum}</div>
+                <div className={styles.statNum}>{networkBlock}</div>
                 <div className={styles.statLabel}>Block</div>
               </div>
             </div>
           </div>
 
-          <CreatePoll onSubmit={handleCreatePoll} connected={!!wallet.address} />
+          <CreatePoll onSubmit={submitCreateTransaction} connected={!!wallet.address} />
 
           <div className={styles.panel}>
-            <div className={styles.panelTitle}>// Contract Info</div>
+            <div className={styles.panelTitle}>// Development info</div>
             <div className={styles.etherscanBox}>
               NETWORK: Sepolia Testnet<br />
-              ADDRESS:<br />
+              CONTRACT ADDRESS:<br />
               <a href={`https://sepolia.etherscan.io/address/${CONTRACT_ADDRESS}`} target="_blank" rel="noreferrer">
                 {CONTRACT_ADDRESS}
               </a><br />
               <a href={`https://sepolia.etherscan.io/address/${CONTRACT_ADDRESS}#code`} target="_blank" rel="noreferrer">
-                → View on Etherscan ↗
+                → Source Code on Etherscan ↗
               </a>
             </div>
           </div>
@@ -233,11 +292,15 @@ export default function Home() {
         <VoteModal
           poll={activePoll}
           onClose={() => setActivePoll(null)}
-          onSubmit={handleSubmitVote}
+          onSubmit={submitVoteTransaction}
         />
       )}
 
-      <Toast message={toast?.msg ?? null} error={toast?.error} onClear={clearToast} />
+      <Toast 
+        message={currentToast?.msg ?? null} 
+        error={currentToast?.error} 
+        onClear={clearToast} 
+      />
     </>
   );
 }

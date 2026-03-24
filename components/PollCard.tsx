@@ -1,8 +1,14 @@
 "use client";
-import { Poll } from "@/lib/contract";
-import styles from "./PollCard.module.css";
-import { CONTRACT_ADDRESS } from "@/lib/contract";
 
+import { Poll, CONTRACT_ADDRESS } from "@/lib/contract";
+import styles from "./PollCard.module.css";
+
+/**
+ * PollCard Component
+ * ------------------
+ * Displays an individual poll item with its options, results, and interaction buttons.
+ * Supports creator-only deletion and "voted" state indication.
+ */
 interface Props {
   poll: Poll;
   index: number;
@@ -11,17 +17,30 @@ interface Props {
   isCreator: boolean;
 }
 
-export default function PollCard({ poll, index, onVote, onDelete, isCreator }: Props) {
-  const total = poll.votes.reduce((a, b) => a + b, 0);
-  const maxVotes = Math.max(...poll.votes);
+export default function PollCard({
+  poll,
+  index,
+  onVote,
+  onDelete,
+  isCreator,
+}: Props) {
+  
+  // Calculate total across all options for percentage mapping
+  const totalVotesAcrossAllOptions = poll.votes.reduce((acc, current) => acc + current, 0);
+  const leadingVoteCount = Math.max(...poll.votes);
+
+  /**
+   * Helper to determine high-contrast label formatting for poll ID
+   */
+  const formattedId = String(poll.id).padStart(3, "0");
 
   return (
-    <div className={styles.card} style={{ animationDelay: `${index * 0.1}s` }}>
+    <article className={styles.card} style={{ animationDelay: `${index * 0.1}s` }}>
       {isCreator && (
-        <button 
-          className={styles.deleteBtn} 
+        <button
+          className={styles.deleteBtn}
           onClick={() => onDelete(poll.id)}
-          title="Delete Poll (UI Only)"
+          title="Delete Poll (Soft Delete / UI-only)"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="3 6 5 6 21 6"></polyline>
@@ -29,55 +48,68 @@ export default function PollCard({ poll, index, onVote, onDelete, isCreator }: P
           </svg>
         </button>
       )}
+
       <div className={styles.pollId}>
-        POLL #{String(poll.id).padStart(3, "0")} · {poll.active ? "ACTIVE" : "CLOSED"}
+        POLL #{formattedId} · {poll.active ? "ACTIVE" : "CLOSED"}
       </div>
-      <div className={styles.question}>{poll.question}</div>
 
-      {poll.options.map((opt, i) => {
-        const pct = total ? Math.round((poll.votes[i] / total) * 100) : 0;
-        const leading = poll.votes[i] === maxVotes && total > 0;
-        return (
-          <div key={i} className={styles.optionRow}>
-            <div className={styles.optionHeader}>
-              <span className={styles.optionLabel}>{opt}</span>
-              <span className={styles.optionPct}>
-                {pct}%{" "}
-                <span className={styles.voteCount}>({poll.votes[i]})</span>
-              </span>
+      <h2 className={styles.question}>{poll.question}</h2>
+
+      <div className={styles.optionsList}>
+        {poll.options.map((optionLabel, idx) => {
+          const voteCountForOption = poll.votes[idx];
+          const percentageValue = totalVotesAcrossAllOptions 
+            ? Math.round((voteCountForOption / totalVotesAcrossAllOptions) * 100) 
+            : 0;
+
+          // Highlights the leading option visually
+          const isCurrentlyLeading = voteCountForOption === leadingVoteCount && totalVotesAcrossAllOptions > 0;
+
+          return (
+            <div key={idx} className={styles.optionRow}>
+              <div className={styles.optionHeader}>
+                <span className={styles.optionLabel}>{optionLabel}</span>
+                <span className={styles.optionPct}>
+                  {percentageValue}%{" "}
+                  <span className={styles.voteCount}>({voteCountForOption})</span>
+                </span>
+              </div>
+              
+              <div className={styles.barTrack}>
+                <div
+                  className={`${styles.barFill} ${isCurrentlyLeading ? styles.leading : ""}`}
+                  style={{ width: `${percentageValue}%` }}
+                />
+              </div>
             </div>
-            <div className={styles.barTrack}>
-              <div
-                className={`${styles.barFill} ${leading ? styles.leading : ""}`}
-                style={{ width: `${pct}%` }}
-              />
-            </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
 
-      {poll.voted ? (
-        <span className={styles.votedTag}>✓ VOTED</span>
-      ) : poll.active ? (
-        <button className={styles.voteBtn} onClick={() => onVote(poll.id)}>
-          CAST VOTE
-        </button>
-      ) : (
-        <span className={styles.closedTag}>CLOSED</span>
-      )}
+      <div className={styles.actionArea}>
+        {poll.voted ? (
+          <div className={styles.votedTag}>✓ VOTED</div>
+        ) : poll.active ? (
+          <button className={styles.voteBtn} onClick={() => onVote(poll.id)}>
+            CAST VOTE
+          </button>
+        ) : (
+          <div className={styles.closedTag}>CLOSED</div>
+        )}
+      </div>
 
-      <div className={styles.meta}>
-        <span className={styles.chip}>🗳 {total} vote{total !== 1 ? "s" : ""}</span>
-        <span className={styles.chip}>📊 {poll.options.length} options</span>
+      <footer className={styles.meta}>
+        <span className={styles.chip}>🗳 {totalVotesAcrossAllOptions} votes cast</span>
+        <span className={styles.chip}>📊 {poll.options.length} options available</span>
         <a
           href={`https://sepolia.etherscan.io/address/${CONTRACT_ADDRESS}`}
           target="_blank"
           rel="noreferrer"
           className={styles.ethLink}
         >
-          ↗ etherscan
+          ↗ view on etherscan
         </a>
-      </div>
-    </div>
+      </footer>
+    </article>
   );
 }

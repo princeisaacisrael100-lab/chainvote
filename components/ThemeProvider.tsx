@@ -1,54 +1,72 @@
 "use client";
-import { createContext, useContext, useEffect, useState, useCallback } from "react";
 
+import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
+
+/**
+ * Theme Type Definition
+ */
 type Theme = "dark" | "light";
 
+/**
+ * Theme Context Interface
+ */
 interface ThemeContextType {
   theme: Theme;
   toggleTheme: () => void;
 }
 
-const ThemeContext = createContext<ThemeContextType>({
-  theme: "dark",
-  toggleTheme: () => {},
-});
+const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-export function useTheme() {
-  return useContext(ThemeContext);
-}
+/**
+ * ThemeProvider Component
+ * -----------------------
+ * Root-level wrapper that manages the color scheme of the application.
+ * Persists user preference via localStorage and listens for system changes.
+ */
+export const ThemeProvider = ({ children }: { children: ReactNode }) => {
+  const [currentTheme, setCurrentTheme] = useState<Theme>("dark");
 
-export default function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>("dark");
-  const [mounted, setMounted] = useState(false);
-
+  /**
+   * Initializes the starting theme based on saved preferences or system defaults
+   */
   useEffect(() => {
-    const stored = localStorage.getItem("chainvote-theme") as Theme | null;
-    if (stored === "light" || stored === "dark") {
-      setTheme(stored);
-    } else if (window.matchMedia("(prefers-color-scheme: light)").matches) {
-      setTheme("light");
-    }
-    setMounted(true);
+    // 1. Check persistent user storage
+    const savedTheme = localStorage.getItem("chainvote-theme") as Theme | null;
+    
+    // 2. Or check their OS/System Preference
+    const userPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+    const initialTheme = savedTheme || (userPrefersDark ? "dark" : "light");
+    
+    setCurrentTheme(initialTheme);
+    document.documentElement.setAttribute("data-theme", initialTheme);
   }, []);
 
-  useEffect(() => {
-    if (!mounted) return;
-    document.documentElement.setAttribute("data-theme", theme);
-    localStorage.setItem("chainvote-theme", theme);
-  }, [theme, mounted]);
-
-  const toggleTheme = useCallback(() => {
-    setTheme((prev) => (prev === "dark" ? "light" : "dark"));
-  }, []);
-
-  // Prevent flash of wrong theme
-  if (!mounted) {
-    return <>{children}</>;
-  }
+  /**
+   * Transitions between Dark and Light mode
+   */
+  const toggleTheme = () => {
+    const nextTheme = currentTheme === "dark" ? "light" : "dark";
+    
+    setCurrentTheme(nextTheme);
+    localStorage.setItem("chainvote-theme", nextTheme);
+    document.documentElement.setAttribute("data-theme", nextTheme);
+  };
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme: currentTheme, toggleTheme }}>
       {children}
     </ThemeContext.Provider>
   );
-}
+};
+
+/**
+ * Hook: Safely access the current theme context
+ */
+export const useTheme = () => {
+  const context = useContext(ThemeContext);
+  if (context === undefined) {
+    throw new Error("useTheme must be consumed within a ThemeProvider.");
+  }
+  return context;
+};

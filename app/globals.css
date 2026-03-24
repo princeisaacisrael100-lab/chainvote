@@ -1,40 +1,44 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap');
+/**
+ * ChainVote Global Design System
+ * ----------------------------
+ * Contains theme tokens, core typography, and base layout styles.
+ * Supports both high-contrast light and premium dark themes.
+ */
 
-/* ─── Dark Theme (default) ─── */
-:root,
-[data-theme="dark"] {
-  --bg:          #0a0a0f;
-  --bg-rgb:      10, 10, 15;
-  --surface:     #12121a;
-  --surface-alt: #1a1a26;
-  --border:      #2a2a3a;
-  --border-hover:#3d3d52;
-  --accent:      #00e5ff;
-  --accent-rgb:  0, 229, 255;
-  --accent2:     #ff3cac;
-  --accent2-rgb: 255, 60, 172;
-  --accent3:     #ffe600;
-  --accent3-rgb: 255, 230, 0;
-  --text:        #e8e8f0;
-  --text-secondary: #c0c0d0;
-  --muted:       #6b6b80;
+:root {
+  /* ─── Dark Theme (Default) ─── */
+  --bg:          #0a0a0c;
+  --bg-rgb:      10, 10, 12;
+  --surface:     #141418;
+  --surface-alt: #1c1c22;
+  --border:      rgba(255, 255, 255, 0.08);
+  --border-hover:rgba(255, 255, 255, 0.15);
+  --accent:      #00f2ff; /* Cyber Cyan */
+  --accent-rgb:  0, 242, 255;
+  --accent2:     #ff0099; /* Neon Pink */
+  --accent2-rgb: 255, 0, 153;
+  --accent3:     #ffcc00; /* Gold */
+  --accent3-rgb: 255, 204, 0;
+  --text:        #ffffff;
+  --text-secondary: #a0a0b0;
+  --muted:       #606070;
   --shadow:      rgba(0, 0, 0, 0.4);
   --shadow-strong: rgba(0, 0, 0, 0.6);
-  --overlay:     rgba(0, 0, 0, 0.75);
-  --glass:       rgba(10, 10, 15, 0.8);
-  --glass-heavy: rgba(10, 10, 15, 0.92);
-  --skeleton-base: #2a2a3a;
-  --skeleton-shine: #2a2a3e;
-  --grid-line:   rgba(0, 229, 255, 0.03);
-  --glow-accent: rgba(0, 229, 255, 0.06);
-  --glow-accent2: rgba(255, 60, 172, 0.06);
+  --overlay:     rgba(0, 0, 0, 0.7);
+  --glass:       rgba(20, 20, 24, 0.8);
+  --glass-heavy: rgba(14, 14, 18, 0.95);
+  --skeleton-base: #1c1c22;
+  --skeleton-shine: #25252d;
+  --grid-line:   rgba(0, 242, 255, 0.03);
+  --glow-accent: rgba(0, 242, 255, 0.1);
+  --glow-accent2: rgba(255, 0, 153, 0.1);
   --success:     #00ff88;
-  --toggle-track: #1e1e2e;
-  --toggle-border: #3d3d52;
+  --toggle-track: #1c1c22;
+  --toggle-border: #2d2d35;
   color-scheme: dark;
 }
 
-/* ─── Light Theme ─── */
+/* ─── Light Mode Overrides ─── */
 [data-theme="light"] {
   --bg:          #f0f2f5;
   --bg-rgb:      240, 242, 245;
@@ -42,13 +46,13 @@
   --surface-alt: #f8f9fb;
   --border:      #c8ced6;
   --border-hover:#a0abb8;
-  --accent:      #007a99; /* Deepened for better contrast on white */
+  --accent:      #007a99; /* Deepened for better contrast */
   --accent-rgb:  0, 122, 153;
-  --accent2:     #b81b7a; /* Deepened for better contrast on white */
+  --accent2:     #b81b7a; /* Deepened for better contrast */
   --accent2-rgb: 184, 27, 122;
-  --accent3:     #a68b00; /* Deepened for better contrast on white */
+  --accent3:     #a68b00; /* Deepened for better contrast */
   --accent3-rgb: 166, 139, 0;
-  --text:        #0f172a; /* Near pure black for maximum readability */
+  --text:        #0f172a; /* High-readability slate */
   --text-secondary: #334155;
   --muted:       #64748b;
   --shadow:      rgba(15, 23, 42, 0.08);
@@ -61,78 +65,60 @@
   --grid-line:   rgba(0, 122, 153, 0.05);
   --glow-accent: rgba(0, 122, 153, 0.04);
   --glow-accent2: rgba(184, 27, 122, 0.04);
-  --success:     #059669; /* Darker green for light mode */
+  --success:     #059669;
   --toggle-track: #cbd5e1;
   --toggle-border: #94a3b8;
   color-scheme: light;
 }
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-html {
-  transition: background-color 0.4s ease;
+/* ─── Base Reset ─── */
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
 }
 
 html, body {
-  font-family: 'DM Sans', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100vh;
+  max-width: 100vw;
   overflow-x: hidden;
 }
 
 body {
-  transition: background-color 0.4s ease, color 0.4s ease;
-}
-
-body::before {
-  content: '';
-  position: fixed; inset: 0;
-  background-image:
+  background: var(--bg);
+  background-image: 
     linear-gradient(var(--grid-line) 1px, transparent 1px),
     linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
   background-size: 40px 40px;
-  pointer-events: none; z-index: 0;
-}
-
-body::after {
-  content: '';
-  position: fixed; top: -200px; left: -200px;
-  width: 600px; height: 600px;
-  background: radial-gradient(circle, var(--glow-accent) 0%, transparent 70%);
-  pointer-events: none; z-index: 0;
-}
-
-/* ─── Scrollbar Theming ─── */
-::-webkit-scrollbar {
-  width: 6px;
-}
-::-webkit-scrollbar-track {
-  background: var(--bg);
-}
-::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--muted);
-}
-
-/* ─── Selection ─── */
-::selection {
-  background: rgba(var(--accent-rgb), 0.25);
   color: var(--text);
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  transition: background 0.4s ease, color 0.4s ease;
+  min-height: 100vh;
 }
 
-/* ─── Global Animations ─── */
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
-@keyframes shimmer { to { background-position: -200% 0; } }
-@keyframes spin { to { transform: rotate(360deg); } }
-@keyframes slideUp {
-  from { transform: translateY(30px); opacity: 0; }
-  to   { transform: translateY(0);    opacity: 1; }
+a {
+  color: inherit;
+  text-decoration: none;
 }
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+
+/* ─── Global Utility Classes ─── */
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+/* ─── Shared Keyframes ─── */
+@keyframes slideUpFade {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulseGlow {
+  0% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.05); }
+  100% { opacity: 0.5; transform: scale(1); }
 }

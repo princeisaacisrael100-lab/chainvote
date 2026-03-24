@@ -1,79 +1,86 @@
 "use client";
+
 import { useState } from "react";
 import { Poll } from "@/lib/contract";
 import styles from "./VoteModal.module.css";
 
+/**
+ * VoteModal Component
+ * -------------------
+ * Overlay for casting a vote on a specific poll.
+ * Includes a custom radio button UI and transaction state management.
+ */
 interface Props {
-  poll: Poll | null;
+  poll: Poll;
   onClose: () => void;
   onSubmit: (optionIndex: number) => Promise<string>;
 }
 
 export default function VoteModal({ poll, onClose, onSubmit }: Props) {
-  const [selected, setSelected] = useState<number | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [txHash, setTxHash] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
-  if (!poll) return null;
+  /**
+   * Action: Handles the actual vote submission to the blockchain
+   */
+  const handleFinalSubmit = async () => {
+    if (selectedIndex === null || isSubmitting) return;
 
-  const handleSubmit = async () => {
-    if (selected === null) return;
-    setLoading(true);
-    setError(null);
     try {
-      const hash = await onSubmit(selected);
-      setTxHash(hash);
-      setTimeout(() => { onClose(); }, 2500);
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message.slice(0, 80) : "Transaction failed");
+      setIsSubmitting(true);
+      await onSubmit(selectedIndex);
+      onClose(); // Auto-close upon successful transaction confirmation
+    } catch (err) {
+      console.warn("Vote submission failed or was rejected.");
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div className={styles.backdrop} onClick={(e) => e.target === e.currentTarget && onClose()}>
+    <div 
+      className={styles.overlay} 
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+      role="dialog"
+      aria-modal="true"
+    >
       <div className={styles.modal}>
-        <button className={styles.close} onClick={onClose}>✕</button>
-        <h2 className={styles.title}>Cast Vote</h2>
-        <p className={styles.question}>{poll.question}</p>
+        <button 
+          className={styles.close} 
+          onClick={onClose}
+          aria-label="Close dialog"
+        >
+          &times;
+        </button>
 
-        <div className={styles.options}>
-          {poll.options.map((opt, i) => (
+        <header>
+          <div className={styles.title}>SUBMIT YOUR VOTE</div>
+          <div className={styles.question}>{poll.question}</div>
+        </header>
+
+        <div className={styles.choices}>
+          {poll.options.map((optionText, idx) => (
             <button
-              key={i}
-              className={`${styles.choiceBtn} ${selected === i ? styles.selected : ""}`}
-              onClick={() => setSelected(i)}
+              key={idx}
+              className={`${styles.choiceBtn} ${selectedIndex === idx ? styles.activeChoice : ""}`}
+              onClick={() => setSelectedIndex(idx)}
+              disabled={isSubmitting}
             >
-              {opt}
+              <div className={styles.radio}>
+                {selectedIndex === idx && <div className={styles.checked} />}
+              </div>
+              <span className={styles.optionLabel}>{optionText}</span>
             </button>
           ))}
         </div>
 
-        {txHash ? (
-          <div className={styles.success}>
-            ✓ Vote recorded!
-            <a
-              href={`https://sepolia.etherscan.io/tx/${txHash}`}
-              target="_blank"
-              rel="noreferrer"
-              className={styles.txLink}
-            >
-              {txHash.slice(0, 20)}...{txHash.slice(-6)}
-            </a>
-          </div>
-        ) : (
-          <button
-            className={styles.submitBtn}
-            onClick={handleSubmit}
-            disabled={selected === null || loading}
-          >
-            {loading ? "SIGNING..." : "SIGN & SUBMIT VOTE"}
-          </button>
-        )}
-
-        {error && <p className={styles.error}>{error}</p>}
+        <button
+          className={styles.submitBtn}
+          onClick={handleFinalSubmit}
+          disabled={selectedIndex === null || isSubmitting}
+        >
+          {isSubmitting ? "TRANSACTION IN PROGRESS..." : "CONFIRM VOTE"}
+        </button>
       </div>
     </div>
   );

@@ -1,85 +1,72 @@
-.backdrop {
-  position: fixed; inset: 0; background: var(--overlay);
-  z-index: 100; backdrop-filter: blur(6px);
+/**
+ * VoteModal Styles
+ * ----------------
+ * Focused overlay for casting poll participation votes.
+ */
+
+.overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  background: var(--overlay); backdrop-filter: blur(8px);
   display: flex; align-items: center; justify-content: center;
-  animation: fadeIn 0.2s ease;
-}
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  padding: 24px; animation: slideUpFade 0.4s ease;
 }
 
 .modal {
-  background: var(--surface); border: 1px solid var(--accent);
-  padding: 36px; max-width: 480px; width: 90%; position: relative;
-  animation: slideUp 0.3s cubic-bezier(0.16,1,0.3,1);
-  box-shadow: 0 16px 48px var(--shadow-strong);
-  border-radius: 6px;
-  transition: background 0.4s ease, border-color 0.4s ease;
-}
-@keyframes slideUp {
-  from { transform: translateY(30px); opacity: 0; }
-  to   { transform: translateY(0);    opacity: 1; }
+  background: var(--surface-alt); border: 1px solid var(--border);
+  width: 100%; max-width: 500px; padding: 40px; border-radius: 4px;
+  position: relative; box-shadow: 0 40px 100px var(--shadow-strong);
 }
 
+/* ─── Header Elements ─── */
 .close {
-  position: absolute; top: 16px; right: 16px;
+  position: absolute; top: 20px; right: 20px;
   background: none; border: none; color: var(--muted);
-  font-size: 20px; cursor: pointer; transition: color 0.3s ease;
+  font-size: 32px; cursor: pointer; line-height: 1;
+  transition: color 0.2s ease;
 }
 .close:hover { color: var(--accent2); }
 
 .title {
-  font-family: 'Bebas Neue', sans-serif; font-size: 32px;
-  letter-spacing: 2px; margin-bottom: 8px; color: var(--accent);
-  transition: color 0.4s ease;
+  font-family: 'Bebas Neue', 'DM Sans', sans-serif;
+  font-size: 32px; font-weight: 600; letter-spacing: 2px;
+  margin-bottom: 8px; color: var(--accent);
 }
 
 .question {
-  font-size: 16px; font-weight: 500; color: var(--text); margin-bottom: 24px;
-  line-height: 1.5; transition: color 0.4s ease;
+  font-size: 17px; font-weight: 500; color: var(--text);
+  margin-bottom: 32px; line-height: 1.5;
 }
 
-.options { display: flex; flex-direction: column; gap: 10px; }
+/* ─── Interactive Choices ─── */
+.choices { display: flex; flex-direction: column; gap: 12px; margin-bottom: 40px; }
+
 .choiceBtn {
-  width: 100%; padding: 14px 18px; background: transparent;
+  width: 100%; padding: 16px 20px; background: transparent;
   border: 2px solid var(--border); color: var(--text);
   font-family: 'DM Sans', sans-serif; font-size: 15px;
-  font-weight: 500;
-  text-align: left; cursor: pointer; transition: all 0.3s ease;
-  border-radius: 4px;
+  font-weight: 500; text-align: left; cursor: pointer;
+  transition: all 0.3s ease; border-radius: 4px;
+  display: flex; align-items: center; gap: 16px;
 }
-.choiceBtn:hover {
-  border-color: var(--accent); color: var(--accent);
-  background: rgba(var(--accent-rgb), 0.06);
-}
-.selected {
-  border-color: var(--accent2) !important; color: var(--accent2) !important;
-  background: rgba(var(--accent2-rgb), 0.08) !important;
-}
+.choiceBtn:hover { border-color: var(--accent); background: rgba(var(--accent-rgb), 0.05); }
 
+.activeChoice { border-color: var(--accent); background: rgba(var(--accent-rgb), 0.1); }
+
+.radio {
+  width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s ease;
+}
+.activeChoice .radio { border-color: var(--accent); }
+.checked { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+
+/* ─── Submit Actions ─── */
 .submitBtn {
-  width: 100%; margin-top: 14px; padding: 14px;
-  font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 3px;
-  background: var(--accent2); border: none; color: var(--bg);
-  cursor: pointer; font-weight: 700; text-transform: uppercase;
-  transition: all 0.3s ease;
-  border-radius: 4px;
+  width: 100%; padding: 16px; background: var(--accent);
+  border: 1px solid var(--accent); color: var(--bg);
+  font-family: 'Space Mono', monospace; font-size: 13px;
+  font-weight: 700; letter-spacing: 2px; cursor: pointer;
+  border-radius: 4px; transition: all 0.3s ease;
 }
-.submitBtn:hover { background: var(--accent); box-shadow: 0 4px 16px rgba(var(--accent-rgb), 0.3); }
-.submitBtn:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; box-shadow: none; }
-
-.success {
-  margin-top: 14px; font-family: 'Space Mono', monospace;
-  font-size: 11px; color: var(--success); display: flex;
-  flex-direction: column; gap: 6px;
-  transition: color 0.4s ease;
-}
-.txLink { color: var(--accent); text-decoration: none; font-size: 10px; word-break: break-all; transition: color 0.3s ease; }
-.txLink:hover { text-decoration: underline; }
-
-.error {
-  margin-top: 10px; font-family: 'Space Mono', monospace;
-  font-size: 10px; color: var(--accent2);
-  transition: color 0.4s ease;
-}
+.submitBtn:hover { background: transparent; color: var(--accent); box-shadow: 0 0 30px var(--glow-accent); }
+.submitBtn:disabled { opacity: 0.5; cursor: not-allowed; border-color: var(--border); }

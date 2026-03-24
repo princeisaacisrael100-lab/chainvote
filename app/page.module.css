@@ -1,88 +1,28 @@
-.blob2 {
-  position: fixed; bottom: -150px; right: -150px;
-  width: 500px; height: 500px;
-  background: radial-gradient(circle, var(--glow-accent2) 0%, transparent 70%);
-  pointer-events: none; z-index: 0;
-  transition: background 0.6s ease;
-}
-
-.hero {
-  position: relative; z-index: 5; text-align: center; padding: 70px 40px 50px;
-}
-
-.heroTag {
-  font-family: 'Space Mono', monospace; font-size: 11px;
-  letter-spacing: 4px; color: var(--accent2);
-  margin-bottom: 18px; text-transform: uppercase;
-  transition: color 0.4s ease;
-}
-
-.heroTitle {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: clamp(60px, 10vw, 110px);
-  line-height: 0.9; letter-spacing: 4px;
-  background: linear-gradient(135deg, var(--text) 0%, var(--accent) 60%, var(--accent2) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin-bottom: 18px;
-  transition: background 0.4s ease;
-}
-
-.heroSub {
-  color: var(--text-secondary); font-size: 16px; font-weight: 400;
-  max-width: 520px; margin: 0 auto; line-height: 1.7;
-  transition: color 0.4s ease;
-}
-
-.networkBar {
-  position: relative; z-index: 5;
-  display: flex; justify-content: center; gap: 16px;
-  padding: 0 40px 40px; flex-wrap: wrap;
-}
-
-.badge {
-  font-family: 'Space Mono', monospace; font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.5px; color: var(--text-secondary);
-  border: 1px solid var(--border); padding: 8px 16px;
-  display: flex; align-items: center; gap: 8px;
-  background: var(--surface);
-  border-radius: 4px;
-  transition: all 0.4s ease;
-}
-
-.dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--accent3);
-  box-shadow: 0 0 6px rgba(var(--accent3-rgb), 0.6);
-  animation: blink 2s infinite;
-  display: inline-block;
-}
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
-
-.contractBadge {
-  font-family: 'Space Mono', monospace; font-size: 11px;
-  color: var(--accent3); border: 1px solid var(--accent3);
-  padding: 6px 14px; display: flex; align-items: center; gap: 8px;
-  cursor: pointer; transition: all 0.3s ease; background: transparent;
-}
-.contractBadge:hover { background: rgba(var(--accent3-rgb), 0.08); }
+/**
+ * HomePage Styles
+ * ---------------
+ * Main dashboard layout. 
+ * Supports responsive grid, sidebar column, and background blobs.
+ */
 
 .main {
   position: relative; z-index: 5;
   max-width: 1400px; margin: 0 auto; padding: 0 40px 80px;
-  display: grid; grid-template-columns: 1fr 320px; gap: 32px;
+  display: grid; grid-template-columns: 1fr 340px; gap: 32px;
 }
-@media(max-width: 1100px) { .main { grid-template-columns: 1fr; padding: 0 20px 80px; } }
 
+@media(max-width: 1100px) { 
+  .main { grid-template-columns: 1fr; padding: 0 20px 80px; } 
+}
+
+/* ─── Layout Section Panels ─── */
 .panel {
   background: var(--surface);
   border: 1px solid var(--border);
-  padding: 28px;
-  box-shadow: 0 2px 12px var(--shadow);
-  transition: background 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
-  border-radius: 4px;
+  padding: 32px; border-radius: 4px; position: relative;
+  box-shadow: 0 10px 30px var(--shadow);
+  transition: background 0.4s ease, border-color 0.4s ease;
+  overflow: hidden;
 }
 
 .panelTitle {
@@ -90,8 +30,7 @@
   letter-spacing: 3px; text-transform: uppercase;
   color: var(--accent); margin-bottom: 24px;
   display: flex; align-items: center; justify-content: space-between;
-  gap: 10px;
-  transition: color 0.4s ease;
+  gap: 10px; transition: color 0.4s ease;
 }
 
 .refreshBtn {
@@ -102,80 +41,103 @@
 .refreshBtn:hover { color: var(--accent); transform: rotate(180deg); }
 .refreshBtn:active { transform: rotate(180deg) scale(0.9); }
 
+/* ─── Hero Section ─── */
+.hero {
+  max-width: 1400px; margin: 0 auto; 
+  padding: 100px 40px 60px; text-align: center; position: relative;
+}
+
+.heroTag {
+  font-family: 'Space Mono', monospace; font-size: 11px;
+  letter-spacing: 2px; color: var(--accent2); margin-bottom: 20px;
+  opacity: 0.8;
+}
+
+.heroTitle {
+  font-family: 'Bebas Neue', 'DM Sans', sans-serif;
+  font-size: min(120px, 15vw); line-height: 0.85;
+  letter-spacing: -2px; margin-bottom: 30px;
+  background: linear-gradient(135deg, var(--text) 30%, var(--accent) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+
+.heroSub {
+  color: var(--text-secondary); font-size: 17px; font-weight: 400;
+  max-width: 520px; margin: 0 auto; line-height: 1.7;
+  transition: color 0.4s ease;
+}
+
+/* ─── Network Status Bar ─── */
+.networkBar {
+  display: flex; gap: 12px; justify-content: center;
+  margin-bottom: 40px; flex-wrap: wrap;
+}
+
+.badge {
+  font-family: 'Space Mono', monospace; font-size: 11px;
+  font-weight: 600; letter-spacing: 0.5px; color: var(--text-secondary);
+  border: 1px solid var(--border); padding: 8px 16px;
+  display: flex; align-items: center; gap: 8px;
+  background: var(--surface); border-radius: 4px;
+  transition: all 0.4s ease;
+}
+
+.dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); }
+
+.contractBadge {
+  background: var(--surface-alt); border: 1px solid var(--accent);
+  color: var(--accent); font-family: 'Space Mono', monospace;
+  font-size: 11px; padding: 8px 16px; cursor: pointer;
+  border-radius: 4px; transition: all 0.3s ease;
+}
+.contractBadge:hover { background: var(--accent); color: var(--bg); }
+
+/* ─── Polls List Grid ─── */
 .pollsList { 
   display: grid; 
   grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); 
   gap: 24px; 
 }
-@media(max-width: 500px) {
-  .pollsList { grid-template-columns: 1fr; }
-}
 
-.empty { text-align: center; padding: 60px 20px; color: var(--muted); transition: color 0.4s ease; }
+@media(max-width: 500px) { .pollsList { grid-template-columns: 1fr; } }
+
+/* ─── Empty & Loading States ─── */
+.empty { text-align: center; padding: 60px 20px; color: var(--muted); }
 .emptyIcon { font-size: 48px; margin-bottom: 16px; opacity: 0.3; }
-.empty p { font-size: 14px; line-height: 1.7; }
 
-.skeletonCard {
-  border: 1px solid var(--border); padding: 24px;
-  border-radius: 4px;
-  transition: border-color 0.4s ease;
+.skel { background: var(--skeleton-base); border-radius: 2px; position: relative; overflow: hidden; }
+.skel::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, var(--skeleton-shine), transparent);
+  transform: translateX(-100%); animation: shimmer 2s infinite;
 }
-.skel {
-  background: linear-gradient(90deg, var(--skeleton-base) 25%, var(--skeleton-shine) 50%, var(--skeleton-base) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-  border-radius: 2px; margin-bottom: 8px;
-}
-@keyframes shimmer { to { background-position: -200% 0; } }
 
-.sidebar { display: flex; flex-direction: column; gap: 20px; }
+@keyframes shimmer { 100% { transform: translateX(100%); } }
+
+/* ─── Sidebar info ─── */
+.sidebar { display: flex; flex-direction: column; gap: 32px; }
 
 .statsGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 
 .statBox {
-  border: 1px solid var(--border); padding: 20px 16px; text-align: center;
-  border-radius: 6px;
-  background: var(--surface-alt);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-  overflow: hidden;
+  background: var(--surface-alt); border: 1px solid var(--border);
+  padding: 16px; border-radius: 4px; text-align: center;
+  transition: all 0.3s ease;
 }
-.statBox::after {
-  content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
-  background: var(--accent); transform: scaleX(0); transition: transform 0.3s ease;
-}
-.statBox:hover {
-  border-color: var(--accent);
-  box-shadow: 0 4px 20px var(--shadow);
-  transform: translateY(-2px);
-}
-.statBox:hover::after { transform: scaleX(1); }
+.statBox:hover { border-color: var(--accent); transform: translateY(-3px); }
 
-.statNum {
-  font-family: 'Bebas Neue', sans-serif; font-size: 42px;
-  color: var(--accent); line-height: 1;
-  transition: color 0.4s ease;
-  margin-bottom: 4px;
-}
-
-.statLabel {
-  font-family: 'Space Mono', monospace; font-size: 9px;
-  letter-spacing: 2px; color: var(--muted);
-  margin-top: 4px; text-transform: uppercase;
-  transition: color 0.4s ease;
-}
+.statNum { font-family: 'Space Mono', monospace; font-size: 24px; color: var(--accent); }
+.statLabel { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
 
 .etherscanBox {
-  border: 1px solid var(--border); padding: 14px;
-  font-family: 'Space Mono', monospace; font-size: 10px;
-  color: var(--muted); line-height: 2;
-  border-radius: 4px;
-  background: var(--surface-alt);
-  transition: all 0.4s ease;
+  font-family: 'Space Mono', monospace; font-size: 11px;
+  color: var(--muted); line-height: 2; word-wrap: break-word;
 }
-.etherscanBox a { color: var(--accent3); text-decoration: none; word-break: break-all; transition: color 0.4s ease; }
-.etherscanBox a:hover { text-decoration: underline; }
+.etherscanBox a { color: var(--accent2); text-decoration: underline; }
+
+/* ─── Background Blobs ─── */
+.blob2 {
+  position: absolute; top: 10%; right: -5%; width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(var(--accent-rgb), 0.1) 0%, transparent 70%);
+  filter: blur(50px); pointer-events: none; z-index: 0;
+}

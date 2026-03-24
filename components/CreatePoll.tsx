@@ -1,99 +1,100 @@
 "use client";
-import { useState } from "react";
+
+import { useState, FormEvent } from "react";
 import styles from "./CreatePoll.module.css";
 
+/**
+ * CreatePoll Component
+ * --------------------
+ * Dashboard panel for deploying new on-chain polls. 
+ * Includes basic validation and multi-line option parsing.
+ */
 interface Props {
   onSubmit: (question: string, options: string[]) => Promise<void>;
   connected: boolean;
 }
 
 export default function CreatePoll({ onSubmit, connected }: Props) {
-  const [question, setQuestion] = useState("");
-  const [options, setOptions] = useState(["", ""]);
-  const [loading, setLoading] = useState(false);
+  // Controller state for form fields
+  const [questionText, setQuestionText] = useState("");
+  const [optionsRawText, setOptionsRawText] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
 
-  const updateOption = (i: number, val: string) => {
-    const next = [...options];
-    next[i] = val;
-    setOptions(next);
-  };
+  /**
+   * Main form submission handler
+   */
+  const handlePollDeployment = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!connected || isCreating) return;
 
-  const addOption = () => {
-    if (options.length < 6) setOptions([...options, ""]);
-  };
+    // Sanitize question and parse multiline options
+    const cleanQuestion = questionText.trim();
+    const parsedOptions = optionsRawText
+      .split("\n")
+      .map((opt) => opt.trim())
+      .filter((opt) => opt.length > 0);
 
-  const removeOption = (i: number) => {
-    if (options.length <= 2) return;
-    setOptions(options.filter((_, idx) => idx !== i));
-  };
+    // Basic client-side validation logic
+    if (!cleanQuestion || parsedOptions.length < 2) {
+      return; // Could show validation toast here if needed
+    }
 
-  const handleSubmit = async () => {
-    if (!connected) return;
-    const filtered = options.filter((o) => o.trim());
-    if (!question.trim() || filtered.length < 2) return;
-    setLoading(true);
     try {
-      await onSubmit(question.trim(), filtered);
-      setQuestion("");
-      setOptions(["", ""]);
+      setIsCreating(true);
+      await onSubmit(cleanQuestion, parsedOptions);
+      
+      // Reset form on success
+      setQuestionText("");
+      setOptionsRawText("");
+    } catch (err) {
+      console.warn("Poll creation transaction failed.");
     } finally {
-      setLoading(false);
+      setIsCreating(false);
     }
   };
 
-  const letters = ["A", "B", "C", "D", "E", "F"];
-
   return (
     <div className={styles.panel}>
-      <div className={styles.title}>// Create Poll</div>
-
-      <div className={styles.field}>
-        <label className={styles.label}>Question</label>
-        <textarea
-          className={styles.textarea}
-          placeholder="What should we decide?"
-          rows={3}
-          value={question}
-          onChange={(e) => setQuestion(e.target.value)}
-        />
-      </div>
-
-      <div className={styles.field}>
-        <label className={styles.label}>Options</label>
-        <div className={styles.optionsList}>
-          {options.map((opt, i) => (
-            <div key={i} className={styles.optionRow}>
-              <input
-                type="text"
-                className={styles.input}
-                placeholder={`Option ${letters[i]}`}
-                value={opt}
-                onChange={(e) => updateOption(i, e.target.value)}
-              />
-              {options.length > 2 && (
-                <button className={styles.removeBtn} onClick={() => removeOption(i)}>✕</button>
-              )}
-            </div>
-          ))}
+      <div className={styles.panelTitle}>// Create New Poll</div>
+      
+      <form onSubmit={handlePollDeployment} className={styles.formBody}>
+        <div className={styles.field}>
+          <label className={styles.label}>POLL QUESTION</label>
+          <input
+            className={styles.input}
+            placeholder="e.g., Which protocol is best?"
+            value={questionText}
+            onChange={(e) => setQuestionText(e.target.value)}
+            disabled={!connected || isCreating}
+            required
+          />
         </div>
-        {options.length < 6 && (
-          <button className={styles.addBtn} onClick={addOption}>+ ADD OPTION</button>
+
+        <div className={styles.field}>
+          <label className={styles.label}>POLL OPTIONS (ONE PER LINE)</label>
+          <textarea
+            className={styles.textarea}
+            rows={4}
+            placeholder="Option A\nOption B"
+            value={optionsRawText}
+            onChange={(e) => setOptionsRawText(e.target.value)}
+            disabled={!connected || isCreating}
+            required
+          />
+        </div>
+
+        <button
+          type="submit"
+          className={styles.submitBtn}
+          disabled={!connected || isCreating}
+        >
+          {isCreating ? "WAITING FOR BLOCKCHAIN..." : "DEPLOY POLL"}
+        </button>
+
+        {!connected && (
+          <p className={styles.hint}>▶ Connect your wallet to enable creation.</p>
         )}
-      </div>
-
-      <button
-        className={styles.deployBtn}
-        onClick={handleSubmit}
-        disabled={loading || !connected}
-      >
-        {loading ? "DEPLOYING..." : "DEPLOY POLL"}
-      </button>
-
-      <p className={styles.hint}>
-        {connected
-          ? "⚠ Each poll costs a small gas fee on Sepolia."
-          : "⚠ Connect wallet first."}
-      </p>
+      </form>
     </div>
   );
 }
