@@ -14,19 +14,6 @@ export function usePolls() {
   const [polls, setPolls] = useState<Poll[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [hiddenPollIds, setHiddenPollIds] = useState<number[]>([]);
-
-  /**
-   * Initializes state by loading previously hidden poll IDs from local storage
-   */
-  useEffect(() => {
-    try {
-      const hidden = localStorage.getItem("chainvote-hidden-polls");
-      if (hidden) setHiddenPollIds(JSON.parse(hidden));
-    } catch (err) {
-      console.warn("Failed to load user-hidden polls from storage.");
-    }
-  }, []);
 
   /**
    * Internal helper to generate a Contract instance for Read/Write
@@ -38,7 +25,7 @@ export function usePolls() {
   );
 
   /**
-   * Loads all polls from the blockchain and filters them based on hidden IDs
+   * Loads all polls from the blockchain using the original contract's methods
    */
   const loadPolls = useCallback(
     async (
@@ -61,34 +48,35 @@ export function usePolls() {
         // Parallel fetching is more efficient for modern RPCs
         const pollPromises = [];
         for (let i = 0; i < pollCountTotal; i++) {
-          if (!hiddenPollIds.includes(i)) {
-            pollPromises.push(
-              (async () => {
-                try {
-                  const [question, options, votesRaw, active, creator] = await contract.getPoll(i);
-                  const hasUserVoted = walletAddress
-                    ? await contract.hasVoted(i, walletAddress)
-                    : false;
+          pollPromises.push(
+            (async () => {
+              try {
+                // The old contract returns [question, options, votes, active, creator] in getPoll
+                const [question, options, votesRaw, active, creator] = await contract.getPoll(i);
+                
+                const hasUserVoted = walletAddress
+                  ? await contract.hasVoted(i, walletAddress)
+                  : false;
 
-                  return {
-                    id: i,
-                    question,
-                    options: [...options],
-                    votes: (votesRaw as ethers.BigNumber[]).map((v) => v.toNumber()),
-                    active,
-                    voted: hasUserVoted,
-                    creator,
-                  } as Poll;
-                } catch (e) {
-                  console.warn(`Failed to fetch poll ${i}:`, e);
-                  return null;
-                }
-              })()
-            );
-          }
+                return {
+                  id: i,
+                  question,
+                  options: [...options],
+                  votes: (votesRaw as ethers.BigNumber[]).map((v) => v.toNumber()),
+                  active,
+                  voted: hasUserVoted,
+                  creator,
+                } as Poll;
+              } catch (e) {
+                console.warn(`Failed to fetch poll ${i}:`, e);
+                return null;
+              }
+            })()
+          );
         }
 
-        const resolvedPolls = (await Promise.all(pollPromises)).filter((p) => p !== null) as Poll[];
+        const resolvedPolls = (await Promise.all(pollPromises))
+          .filter((p) => p !== null && p.active) as Poll[];
         setPolls(resolvedPolls);
       } catch (err: any) {
         console.error("Poll load error:", err);
@@ -97,22 +85,30 @@ export function usePolls() {
         setLoading(false);
       }
     },
-    [getContract, hiddenPollIds]
+    [getContract]
   );
 
   /**
-   * Adds a poll ID to the hidden list in localStorage (UI-only delete)
+   * Closes a poll via the smart contract
    */
-  const deletePoll = useCallback((pollId: number) => {
-    setHiddenPollIds(prev => {
-      const nextList = [...prev, pollId];
-      localStorage.setItem("chainvote-hidden-polls", JSON.stringify(nextList));
-      return nextList;
-    });
-
-    // Optimistically update the polls state list instantly
-    setPolls(prev => prev.filter(p => p.id !== pollId));
-  }, []);
+  const deletePoll = useCallback(
+    async (signer: ethers.Signer, pollId: number): Promise<void> => {
+      try {
+        const contract = getContract(signer);
+        // Note: Using closePoll as permanent deletion substitute on the old contract
+        const tx = await contract.closePoll(pollId);
+        await tx.wait(); // Wait for mining
+        
+        // Refresh local list
+        const provider = signer.provider || (window as any).ethereum; // best effort fallback
+        if (provider) await loadPolls(provider, null);
+      } catch (err: any) {
+        const msg = err.message || "Failed to close/delete poll on-chain.";
+        throw new Error(msg.slice(0, 100));
+      }
+    },
+    [getContract, loadPolls]
+  );
 
   /**
    * Deploys a new poll to the blockchain

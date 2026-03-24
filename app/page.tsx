@@ -143,6 +143,25 @@ export default function HomePage() {
     }
   };
 
+  /**
+   * Process a poll deletion transaction
+   */
+  const handleDeletePoll = async (pollId: number) => {
+    const signer = wallet.getSigner();
+    if (!signer) {
+      showToast("Connect your wallet first.", true);
+      return;
+    }
+
+    try {
+      showToast("Blockchain deletion submitted...");
+      await deletePoll(signer, pollId);
+      showToast("✓ Poll deleted from blockchain.");
+    } catch (e: any) {
+      showToast(e.message || "Deletion failed.", true);
+    }
+  };
+
   // UI Derived Data
   const totalVotesAcrossPolls = polls.reduce((sum, p) => sum + p.votes.reduce((a, b) => a + b, 0), 0);
   const userTotalVotes = polls.filter((p) => p.voted).length;
@@ -238,7 +257,7 @@ export default function HomePage() {
                     poll={poll} 
                     index={idx} 
                     onVote={openVoteModal} 
-                    onDelete={deletePoll}
+                    onDelete={handleDeletePoll}
                     isCreator={!!wallet.address && poll.creator.toLowerCase() === wallet.address.toLowerCase()}
                   />
                 ))}

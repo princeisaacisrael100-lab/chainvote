@@ -7,7 +7,7 @@ import styles from "./PollCard.module.css";
  * PollCard Component
  * ------------------
  * Displays an individual poll item with its options, results, and interaction buttons.
- * Supports creator-only deletion and "voted" state indication.
+ * Supports creator-only permanent deletion and "voted" state indication.
  */
 interface Props {
   poll: Poll;
@@ -24,7 +24,7 @@ export default function PollCard({
   onDelete,
   isCreator,
 }: Props) {
-  
+
   // Calculate total across all options for percentage mapping
   const totalVotesAcrossAllOptions = poll.votes.reduce((acc, current) => acc + current, 0);
   const leadingVoteCount = Math.max(...poll.votes);
@@ -40,7 +40,7 @@ export default function PollCard({
         <button
           className={styles.deleteBtn}
           onClick={() => onDelete(poll.id)}
-          title="Delete Poll (Soft Delete / UI-only)"
+          title="Permanently Delete Poll (On-Chain)"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="3 6 5 6 21 6"></polyline>
@@ -58,8 +58,8 @@ export default function PollCard({
       <div className={styles.optionsList}>
         {poll.options.map((optionLabel, idx) => {
           const voteCountForOption = poll.votes[idx];
-          const percentageValue = totalVotesAcrossAllOptions 
-            ? Math.round((voteCountForOption / totalVotesAcrossAllOptions) * 100) 
+          const percentageValue = totalVotesAcrossAllOptions
+            ? Math.round((voteCountForOption / totalVotesAcrossAllOptions) * 100)
             : 0;
 
           // Highlights the leading option visually
@@ -74,7 +74,7 @@ export default function PollCard({
                   <span className={styles.voteCount}>({voteCountForOption})</span>
                 </span>
               </div>
-              
+
               <div className={styles.barTrack}>
                 <div
                   className={`${styles.barFill} ${isCurrentlyLeading ? styles.leading : ""}`}
