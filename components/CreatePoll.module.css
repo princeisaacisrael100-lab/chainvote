@@ -34,6 +34,28 @@
 .submitBtn:hover { background: transparent; color: var(--accent2); box-shadow: 0 0 20px var(--glow-accent2); }
 .submitBtn:disabled { opacity: 0.5; cursor: not-allowed; border-color: var(--border); color: var(--muted); }
 
+/* ─── Options Collection ─── */
+.optionsSection { display: flex; flex-direction: column; gap: 12px; }
+
+.optionInputRow { display: flex; gap: 10px; align-items: center; }
+
+.removeBtn {
+  background: transparent; border: 1px solid var(--border);
+  color: var(--muted); padding: 8px 12px; font-size: 18px; line-height: 1;
+  cursor: pointer; border-radius: 4px; transition: all 0.2s ease;
+}
+.removeBtn:hover { color: var(--accent2); border-color: var(--accent2); background: rgba(var(--accent2-rgb), 0.05); }
+
+.addBtn {
+  background: none; border: 1px dashed var(--border);
+  color: var(--accent); font-family: 'Space Mono', monospace;
+  font-size: 11px; padding: 10px; cursor: pointer;
+  border-radius: 4px; transition: all 0.2s ease;
+  text-transform: uppercase; letter-spacing: 1px;
+}
+.addBtn:hover:not(:disabled) { border-color: var(--accent); background: rgba(var(--accent-rgb), 0.05); }
+.addBtn:disabled { opacity: 0.5; cursor: default; }
+
 .hint {
   font-family: 'Space Mono', monospace; font-size: 10px;
   color: var(--muted); text-align: center; margin-top: 8px;

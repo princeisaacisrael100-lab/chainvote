@@ -110,3 +110,14 @@
   transition: all 0.2s ease;
 }
 .ethLink:hover { color: var(--accent2); text-decoration: underline; }
+
+@keyframes slideUpFade {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

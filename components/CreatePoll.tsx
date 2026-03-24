@@ -17,8 +17,21 @@ interface Props {
 export default function CreatePoll({ onSubmit, connected }: Props) {
   // Controller state for form fields
   const [questionText, setQuestionText] = useState("");
-  const [optionsRawText, setOptionsRawText] = useState("");
+  const [options, setOptions] = useState(["", ""]);
   const [isCreating, setIsCreating] = useState(false);
+
+  const addOption = () => setOptions([...options, ""]);
+  const removeOption = (idx: number) => {
+    if (options.length > 2) {
+      setOptions(options.filter((_, i) => i !== idx));
+    }
+  };
+
+  const updateOption = (idx: number, val: string) => {
+    const next = [...options];
+    next[idx] = val;
+    setOptions(next);
+  };
 
   /**
    * Main form submission handler
@@ -27,16 +40,15 @@ export default function CreatePoll({ onSubmit, connected }: Props) {
     e.preventDefault();
     if (!connected || isCreating) return;
 
-    // Sanitize question and parse multiline options
+    // Sanitize question and filter non-empty options
     const cleanQuestion = questionText.trim();
-    const parsedOptions = optionsRawText
-      .split("\n")
+    const parsedOptions = options
       .map((opt) => opt.trim())
       .filter((opt) => opt.length > 0);
 
-    // Basic client-side validation logic
+    // Basic client-side validation logic (requires at least 2 non-empty options)
     if (!cleanQuestion || parsedOptions.length < 2) {
-      return; // Could show validation toast here if needed
+      return; 
     }
 
     try {
@@ -45,7 +57,7 @@ export default function CreatePoll({ onSubmit, connected }: Props) {
       
       // Reset form on success
       setQuestionText("");
-      setOptionsRawText("");
+      setOptions(["", ""]);
     } catch (err) {
       console.warn("Poll creation transaction failed.");
     } finally {
@@ -70,17 +82,40 @@ export default function CreatePoll({ onSubmit, connected }: Props) {
           />
         </div>
 
-        <div className={styles.field}>
-          <label className={styles.label}>POLL OPTIONS (ONE PER LINE)</label>
-          <textarea
-            className={styles.textarea}
-            rows={4}
-            placeholder="Option A\nOption B"
-            value={optionsRawText}
-            onChange={(e) => setOptionsRawText(e.target.value)}
-            disabled={!connected || isCreating}
-            required
-          />
+        <div className={styles.optionsSection}>
+          <label className={styles.label}>POLL OPTIONS</label>
+          {options.map((opt, idx) => (
+            <div key={idx} className={styles.optionInputRow}>
+              <input
+                className={styles.input}
+                placeholder={`Option ${idx + 1}`}
+                value={opt}
+                onChange={(e) => updateOption(idx, e.target.value)}
+                disabled={!connected || isCreating}
+                required
+              />
+              {options.length > 2 && (
+                <button
+                  type="button"
+                  className={styles.removeBtn}
+                  onClick={() => removeOption(idx)}
+                  disabled={!connected || isCreating}
+                  title="Remove Option"
+                >
+                  &times;
+                </button>
+              )}
+            </div>
+          ))}
+          
+          <button
+            type="button"
+            className={styles.addBtn}
+            onClick={addOption}
+            disabled={!connected || isCreating || options.length >= 8}
+          >
+            + Add Another Option
+          </button>
         </div>
 
         <button

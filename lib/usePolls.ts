@@ -42,7 +42,7 @@ export function usePolls() {
    */
   const loadPolls = useCallback(
     async (
-      provider: ethers.providers.Web3Provider,
+      provider: ethers.providers.Web3Provider | ethers.providers.Provider,
       walletAddress: string | null
     ) => {
       setLoading(true);
@@ -58,32 +58,40 @@ export function usePolls() {
           return;
         }
 
-        const loadedPolls: Poll[] = [];
-
-        // Parallel fetching is generally better, but for simplicity we fetch sequentially 
-        // as the local dev provider may be limiting on parallel requests for small counts.
+        // Parallel fetching is more efficient for modern RPCs
+        const pollPromises = [];
         for (let i = 0; i < pollCountTotal; i++) {
-          const [question, options, votesRaw, active, creator] = await contract.getPoll(i);
-          
-          const hasUserVoted = walletAddress
-            ? await contract.hasVoted(i, walletAddress)
-            : false;
+          if (!hiddenPollIds.includes(i)) {
+            pollPromises.push(
+              (async () => {
+                try {
+                  const [question, options, votesRaw, active, creator] = await contract.getPoll(i);
+                  const hasUserVoted = walletAddress
+                    ? await contract.hasVoted(i, walletAddress)
+                    : false;
 
-          loadedPolls.push({
-            id: i,
-            question,
-            options: [...options],
-            votes: (votesRaw as ethers.BigNumber[]).map((v) => v.toNumber()),
-            active,
-            voted: hasUserVoted,
-            creator,
-          });
+                  return {
+                    id: i,
+                    question,
+                    options: [...options],
+                    votes: (votesRaw as ethers.BigNumber[]).map((v) => v.toNumber()),
+                    active,
+                    voted: hasUserVoted,
+                    creator,
+                  } as Poll;
+                } catch (e) {
+                  console.warn(`Failed to fetch poll ${i}:`, e);
+                  return null;
+                }
+              })()
+            );
+          }
         }
-        
-        // Final pass to remove creator-hidden polls
-        const visiblePolls = loadedPolls.filter(p => !hiddenPollIds.includes(p.id));
-        setPolls(visiblePolls);
+
+        const resolvedPolls = (await Promise.all(pollPromises)).filter((p) => p !== null) as Poll[];
+        setPolls(resolvedPolls);
       } catch (err: any) {
+        console.error("Poll load error:", err);
         setError(err instanceof Error ? err.message.slice(0, 80) : "Failed to load poll data.");
       } finally {
         setLoading(false);

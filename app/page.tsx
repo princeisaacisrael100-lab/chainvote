@@ -83,14 +83,12 @@ export default function HomePage() {
   }, [updateBlockInfo]);
 
   /**
-   * Automatically load polls whenever a wallet is connected
+   * Automatically load polls whenever a wallet is connected or app triggers
    */
   useEffect(() => {
-    if (wallet.address) {
-      const provider = wallet.getProvider();
-      if (provider) {
-        loadPolls(provider, wallet.address);
-      }
+    const provider = wallet.getProvider();
+    if (provider) {
+      loadPolls(provider, wallet.address);
     }
   }, [wallet.address, loadPolls, wallet.getProvider]);
 
@@ -207,12 +205,7 @@ export default function HomePage() {
               )}
             </div>
 
-            {!wallet.address ? (
-              <div className={styles.empty}>
-                <div className={styles.emptyIcon}>🔌</div>
-                <p>Welcome! Connect your Ethereum wallet to participate in the on-chain governance.</p>
-              </div>
-            ) : loading ? (
+            {loading ? (
               <div className={styles.pollsList}>
                 {[1, 2, 3].map((i) => (
                   <div key={i} className={styles.skeletonCard}>
@@ -223,10 +216,19 @@ export default function HomePage() {
                   </div>
                 ))}
               </div>
+            ) : error ? (
+              <div className={styles.empty}>
+                <div className={styles.emptyIcon}>⚠️</div>
+                <p>{error}. Ensure you are on the Sepolia Testnet.</p>
+              </div>
             ) : polls.length === 0 ? (
               <div className={styles.empty}>
-                <div className={styles.emptyIcon}>🗳</div>
-                <p>Be the first one to create a poll on this contract!</p>
+                <div className={styles.emptyIcon}>{wallet.address ? "🗳" : "🔌"}</div>
+                <p>
+                  {wallet.address 
+                    ? "Be the first one to create a poll on this contract!" 
+                    : "Connect your Ethereum wallet to see and participate in active polls."}
+                </p>
               </div>
             ) : (
               <div className={styles.pollsList}>
