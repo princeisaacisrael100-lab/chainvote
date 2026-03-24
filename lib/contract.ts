@@ -4,7 +4,7 @@ export const SEPOLIA_CHAIN_ID = "0xaa36a7";
 export const CONTRACT_ABI = [
   "function createPoll(string memory _question, string[] memory _options) external returns (uint256)",
   "function vote(uint256 _pollId, uint256 _optionIndex) external",
-  "function getPoll(uint256 _pollId) external view returns (string memory question, string[] memory options, uint256[] memory votes, bool active)",
+  "function getPoll(uint256 _pollId) external view returns (string memory question, string[] memory options, uint256[] memory votes, bool active, address creator)",
   "function getPollCount() external view returns (uint256)",
   "function hasVoted(uint256 _pollId, address _voter) external view returns (bool)",
 ];
@@ -16,4 +16,5 @@ export interface Poll {
   votes: number[];
   active: boolean;
   voted: boolean;
+  creator: string;
 }

@@ -1,26 +1,46 @@
 "use client";
 import styles from "./Header.module.css";
+import ThemeToggle from "./ThemeToggle";
 
 interface Props {
   address: string | null;
   short: string | null;
   loading: boolean;
   onConnect: () => void;
+  onDisconnect: () => void;
 }
 
-export default function Header({ address, short, loading, onConnect }: Props) {
+export default function Header({ address, short, loading, onConnect, onDisconnect }: Props) {
   return (
     <header className={styles.header}>
-      <div className={styles.logo}>
+      <div className={styles.logo} onClick={() => window.location.reload()} style={{ cursor: "pointer" }}>
         Chain<span>Vote</span>
       </div>
-      <button
-        className={`${styles.walletBtn} ${address ? styles.connected : ""}`}
-        onClick={onConnect}
-        disabled={loading}
-      >
-        {loading ? "CONNECTING..." : address ? `● ${short}` : "▶ CONNECT WALLET"}
-      </button>
+      <div className={styles.actions}>
+        <ThemeToggle />
+        <div className={styles.walletContainer}>
+          <button
+            className={`${styles.walletBtn} ${address ? styles.connected : ""}`}
+            onClick={onConnect}
+            disabled={loading}
+          >
+            {loading ? "CONNECTING..." : address ? `● ${short}` : "▶ CONNECT WALLET"}
+          </button>
+          {address && (
+            <button
+              className={styles.logoutBtn}
+              onClick={onDisconnect}
+              title="Disconnect Wallet"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+              </svg>
+            </button>
+          )}
+        </div>
+      </div>
     </header>
   );
 }

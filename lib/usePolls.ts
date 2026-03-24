@@ -1,5 +1,5 @@
 "use client";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { ethers } from "ethers";
 import { CONTRACT_ADDRESS, CONTRACT_ABI, Poll } from "@/lib/contract";
 
@@ -7,6 +7,12 @@ export function usePolls() {
   const [polls, setPolls] = useState<Poll[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hiddenIds, setHiddenIds] = useState<number[]>([]);
+
+  useEffect(() => {
+    const hidden = localStorage.getItem("chainvote-hidden-polls");
+    if (hidden) setHiddenIds(JSON.parse(hidden));
+  }, []);
 
   const getContract = useCallback(
     (signerOrProvider: ethers.Signer | ethers.providers.Provider) =>
@@ -34,7 +40,7 @@ export function usePolls() {
 
         const loaded: Poll[] = [];
         for (let i = 0; i < total; i++) {
-          const [question, options, votes, active] = await contract.getPoll(i);
+          const [question, options, votes, active, creator] = await contract.getPoll(i);
           const voted = walletAddress
             ? await contract.hasVoted(i, walletAddress)
             : false;
@@ -45,9 +51,13 @@ export function usePolls() {
             votes: (votes as ethers.BigNumber[]).map((v) => v.toNumber()),
             active,
             voted,
+            creator,
           });
         }
-        setPolls(loaded);
+        
+        // Filter out hidden polls
+        const filtered = loaded.filter(p => !hiddenIds.includes(p.id));
+        setPolls(filtered);
       } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : String(e);
         setError(msg.slice(0, 100));
@@ -55,8 +65,17 @@ export function usePolls() {
         setLoading(false);
       }
     },
-    [getContract]
+    [getContract, hiddenIds]
   );
+
+  const deletePoll = useCallback((id: number) => {
+    setHiddenIds(prev => {
+      const next = [...prev, id];
+      localStorage.setItem("chainvote-hidden-polls", JSON.stringify(next));
+      return next;
+    });
+    setPolls(prev => prev.filter(p => p.id !== id));
+  }, []);
 
   const createPoll = useCallback(
     async (
@@ -91,5 +110,5 @@ export function usePolls() {
     [getContract]
   );
 
-  return { polls, loading, error, loadPolls, createPoll, castVote };
+  return { polls, loading, error, loadPolls, createPoll, castVote, deletePoll };
 }

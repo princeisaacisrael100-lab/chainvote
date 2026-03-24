@@ -1,17 +1,77 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap');
 
-:root {
-  --bg:      #0a0a0f;
-  --surface: #12121a;
-  --border:  #2a2a3a;
-  --accent:  #00e5ff;
-  --accent2: #ff3cac;
-  --accent3: #ffe600;
-  --text:    #e8e8f0;
-  --muted:   #6b6b80;
+/* ─── Dark Theme (default) ─── */
+:root,
+[data-theme="dark"] {
+  --bg:          #0a0a0f;
+  --bg-rgb:      10, 10, 15;
+  --surface:     #12121a;
+  --surface-alt: #1a1a26;
+  --border:      #2a2a3a;
+  --border-hover:#3d3d52;
+  --accent:      #00e5ff;
+  --accent-rgb:  0, 229, 255;
+  --accent2:     #ff3cac;
+  --accent2-rgb: 255, 60, 172;
+  --accent3:     #ffe600;
+  --accent3-rgb: 255, 230, 0;
+  --text:        #e8e8f0;
+  --text-secondary: #c0c0d0;
+  --muted:       #6b6b80;
+  --shadow:      rgba(0, 0, 0, 0.4);
+  --shadow-strong: rgba(0, 0, 0, 0.6);
+  --overlay:     rgba(0, 0, 0, 0.75);
+  --glass:       rgba(10, 10, 15, 0.8);
+  --glass-heavy: rgba(10, 10, 15, 0.92);
+  --skeleton-base: #2a2a3a;
+  --skeleton-shine: #2a2a3e;
+  --grid-line:   rgba(0, 229, 255, 0.03);
+  --glow-accent: rgba(0, 229, 255, 0.06);
+  --glow-accent2: rgba(255, 60, 172, 0.06);
+  --success:     #00ff88;
+  --toggle-track: #1e1e2e;
+  --toggle-border: #3d3d52;
+  color-scheme: dark;
+}
+
+/* ─── Light Theme ─── */
+[data-theme="light"] {
+  --bg:          #f0f2f5;
+  --bg-rgb:      240, 242, 245;
+  --surface:     #ffffff;
+  --surface-alt: #f8f9fb;
+  --border:      #c8ced6;
+  --border-hover:#a0abb8;
+  --accent:      #007a99; /* Deepened for better contrast on white */
+  --accent-rgb:  0, 122, 153;
+  --accent2:     #b81b7a; /* Deepened for better contrast on white */
+  --accent2-rgb: 184, 27, 122;
+  --accent3:     #a68b00; /* Deepened for better contrast on white */
+  --accent3-rgb: 166, 139, 0;
+  --text:        #0f172a; /* Near pure black for maximum readability */
+  --text-secondary: #334155;
+  --muted:       #64748b;
+  --shadow:      rgba(15, 23, 42, 0.08);
+  --shadow-strong: rgba(15, 23, 42, 0.12);
+  --overlay:     rgba(255, 255, 255, 0.9);
+  --glass:       rgba(240, 242, 245, 0.85);
+  --glass-heavy: rgba(255, 255, 255, 0.98);
+  --skeleton-base: #e2e8f0;
+  --skeleton-shine: #f1f5f9;
+  --grid-line:   rgba(0, 122, 153, 0.05);
+  --glow-accent: rgba(0, 122, 153, 0.04);
+  --glow-accent2: rgba(184, 27, 122, 0.04);
+  --success:     #059669; /* Darker green for light mode */
+  --toggle-track: #cbd5e1;
+  --toggle-border: #94a3b8;
+  color-scheme: light;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  transition: background-color 0.4s ease;
+}
 
 html, body {
   font-family: 'DM Sans', sans-serif;
@@ -21,12 +81,16 @@ html, body {
   overflow-x: hidden;
 }
 
+body {
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
 body::before {
   content: '';
   position: fixed; inset: 0;
   background-image:
-    linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
   background-size: 40px 40px;
   pointer-events: none; z-index: 0;
 }
@@ -35,14 +99,40 @@ body::after {
   content: '';
   position: fixed; top: -200px; left: -200px;
   width: 600px; height: 600px;
-  background: radial-gradient(circle, rgba(0,229,255,0.06) 0%, transparent 70%);
+  background: radial-gradient(circle, var(--glow-accent) 0%, transparent 70%);
   pointer-events: none; z-index: 0;
 }
 
+/* ─── Scrollbar Theming ─── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+}
+
+/* ─── Selection ─── */
+::selection {
+  background: rgba(var(--accent-rgb), 0.25);
+  color: var(--text);
+}
+
+/* ─── Global Animations ─── */
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
 @keyframes shimmer { to { background-position: -200% 0; } }
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes slideUp {
   from { transform: translateY(30px); opacity: 0; }
   to   { transform: translateY(0);    opacity: 1; }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }

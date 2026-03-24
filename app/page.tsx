@@ -1,5 +1,5 @@
 "use client";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useWallet } from "@/lib/useWallet";
 import { usePolls } from "@/lib/usePolls";
 import { Poll, CONTRACT_ADDRESS } from "@/lib/contract";
@@ -12,7 +12,7 @@ import styles from "./page.module.css";
 
 export default function Home() {
   const wallet = useWallet();
-  const { polls, loading, error, loadPolls, createPoll, castVote } = usePolls();
+  const { polls, loading, error, loadPolls, createPoll, castVote, deletePoll } = usePolls();
 
   const [activePoll, setActivePoll] = useState<Poll | null>(null);
   const [toast, setToast] = useState<{ msg: string; error?: boolean } | null>(null);
@@ -24,8 +24,16 @@ export default function Home() {
 
   const handleConnect = async () => {
     await wallet.connect();
-    if (wallet.error) { showToast(wallet.error, true); return; }
+    if (wallet.error) { showToast(wallet.error, true); }
+  };
 
+  const handleDisconnect = () => {
+    wallet.disconnect();
+    showToast("Wallet disconnected.");
+  };
+
+  const updateBlock = useCallback(async () => {
+    if (typeof window === "undefined" || !(window as any).ethereum) return;
     try {
       const hex: string = await (window as any).ethereum.request({
         method: "eth_blockNumber",
@@ -33,16 +41,22 @@ export default function Home() {
       const num = parseInt(hex, 16);
       setBlockNum((num / 1000).toFixed(1) + "K");
     } catch {}
+  }, []);
 
-    setTimeout(async () => {
+  useEffect(() => {
+    updateBlock();
+    const interval = setInterval(updateBlock, 15000);
+    return () => clearInterval(interval);
+  }, [updateBlock]);
+
+  useEffect(() => {
+    if (wallet.address) {
       const p = wallet.getProvider();
       if (p) {
-        showToast("Wallet connected! Loading polls...");
-        await loadPolls(p, wallet.address);
-        if (error) showToast(error, true);
+        loadPolls(p, wallet.address);
       }
-    }, 300);
-  };
+    }
+  }, [wallet.address, loadPolls, wallet.getProvider]);
 
   const handleVote = (pollId: number) => {
     if (!wallet.address) { showToast("Connect your wallet first.", true); return; }
@@ -89,6 +103,7 @@ export default function Home() {
         short={wallet.short}
         loading={wallet.loading}
         onConnect={handleConnect}
+        onDisconnect={handleDisconnect}
       />
 
       <div className={styles.hero}>
@@ -114,7 +129,25 @@ export default function Home() {
       <main className={styles.main}>
         <section>
           <div className={styles.panel}>
-            <div className={styles.panelTitle}>// Active Polls</div>
+            <div className={styles.panelTitle}>
+              // Active Polls
+              {!loading && (
+                <button 
+                  className={styles.refreshBtn} 
+                  onClick={() => {
+                    const p = wallet.getProvider();
+                    if (p) loadPolls(p, wallet.address);
+                  }}
+                  title="Refresh Polls"
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M23 4v6h-6"></path>
+                    <path d="M1 20v-6h6"></path>
+                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                  </svg>
+                </button>
+              )}
+            </div>
             {loading ? (
               <div className={styles.pollsList}>
                 {[1, 2].map((i) => (
@@ -133,8 +166,15 @@ export default function Home() {
               </div>
             ) : (
               <div className={styles.pollsList}>
-                {polls.map((poll) => (
-                  <PollCard key={poll.id} poll={poll} onVote={handleVote} />
+                {polls.map((poll, idx) => (
+                  <PollCard 
+                    key={poll.id} 
+                    poll={poll} 
+                    index={idx} 
+                    onVote={handleVote} 
+                    onDelete={deletePoll}
+                    isCreator={!!wallet.address && poll.creator.toLowerCase() === wallet.address.toLowerCase()}
+                  />
                 ))}
               </div>
             )}

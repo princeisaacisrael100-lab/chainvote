@@ -1,0 +1,91 @@
+.toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+
+.toggle:focus-visible .track {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.track {
+  width: 52px;
+  height: 28px;
+  border-radius: 14px;
+  background: var(--toggle-track);
+  border: 1px solid var(--toggle-border);
+  position: relative;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.4);
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+              background 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.thumb.light {
+  transform: translateX(24px);
+  background: var(--accent3);
+  box-shadow: 0 0 10px rgba(255, 170, 0, 0.5);
+}
+
+.iconWrap {
+  display: grid;
+  width: 14px;
+  height: 14px;
+}
+
+.icon {
+  width: 14px;
+  height: 14px;
+  grid-area: 1 / 1;
+  color: var(--bg);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  opacity: 0;
+  transform: scale(0.5) rotate(-30deg);
+}
+
+.icon.active {
+  opacity: 1;
+  transform: scale(1) rotate(0deg);
+}
+
+.toggle:hover .track {
+  border-color: var(--accent);
+}
+
+.toggle:hover .thumb {
+  box-shadow: 0 0 16px rgba(0, 229, 255, 0.6);
+}
+
+.toggle:hover .thumb.light {
+  box-shadow: 0 0 16px rgba(255, 170, 0, 0.7);
+}
+
+.toggle:active .thumb {
+  transform: scale(0.9);
+}
+
+.toggle:active .thumb.light {
+  transform: translateX(24px) scale(0.9);
+}

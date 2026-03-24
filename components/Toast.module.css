@@ -2,9 +2,11 @@
   position: fixed; bottom: 30px; right: 30px;
   font-family: 'Space Mono', monospace; font-size: 12px;
   background: var(--surface); border: 1px solid var(--accent);
-  color: var(--text); padding: 14px 20px; z-index: 1000;
+  color: var(--text); padding: 14px 24px; z-index: 1000;
   transform: translateY(100px); opacity: 0; max-width: 320px;
   transition: all 0.3s cubic-bezier(0.16,1,0.3,1);
+  box-shadow: 0 8px 32px var(--shadow-strong);
+  border-radius: 4px;
 }
 .show { transform: translateY(0); opacity: 1; }
-.error { border-color: var(--accent2); }
+.error { border-color: var(--accent2); color: var(--accent2); }
