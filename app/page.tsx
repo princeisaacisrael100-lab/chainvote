@@ -148,9 +148,14 @@ export default function Home() {
                 </button>
               )}
             </div>
-            {loading ? (
+            {!wallet.address ? (
+              <div className={styles.empty}>
+                <div className={styles.emptyIcon}>🔌</div>
+                <p>Connect your wallet above to load polls from the blockchain.</p>
+              </div>
+            ) : loading ? (
               <div className={styles.pollsList}>
-                {[1, 2].map((i) => (
+                {[1, 2, 3].map((i) => (
                   <div key={i} className={styles.skeletonCard}>
                     <div className={styles.skel} style={{ width: "60px", height: "10px" }} />
                     <div className={styles.skel} style={{ width: "90%", height: "18px", marginTop: "10px" }} />
@@ -161,8 +166,8 @@ export default function Home() {
               </div>
             ) : polls.length === 0 ? (
               <div className={styles.empty}>
-                <div className={styles.emptyIcon}>{wallet.address ? "🗳" : "🔌"}</div>
-                <p>{wallet.address ? "No polls yet. Be the first to create one!" : "Connect your wallet above to load polls from the blockchain."}</p>
+                <div className={styles.emptyIcon}>🗳</div>
+                <p>No polls yet. Be the first to create one!</p>
               </div>
             ) : (
               <div className={styles.pollsList}>
